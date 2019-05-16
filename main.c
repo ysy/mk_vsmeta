@@ -184,7 +184,7 @@ int main(int argc, char * argv[])
     if (episode_title)
         write_string(pbuf, TAG_EPISODE_TITLE, episode_title);
     write_int(pbuf, TAG_YEAR, 0);
-    write_int(pbuf, TAG_EPISODE_LOCKED, 1);
+    write_int(pbuf, TAG_EPISODE_LOCKED, 0);
     write_string(pbuf, TAG_EPISODE_META_JSON, "null");
     write_int(pbuf, TAG_CLASSIFICATION, 0);
     write_raw_bytes(pbuf, rating_raw, sizeof(rating_raw));
@@ -192,7 +192,7 @@ int main(int argc, char * argv[])
     write_int(pg2buf, TAG2_SEASON, season);
     write_int(pg2buf, TAG2_EPISODE, episode);
     write_int(pg2buf, TAG2_TV_SHOW_YEAR, 0);
-    write_int(pg2buf, TAG2_LOCKED, 1);
+    write_int(pg2buf, TAG2_LOCKED, 0);
     write_string(pg2buf, TAG2_TVSHOW_META_JSON, "null");
     write_buffer(pbuf, TAG_GROUP2, pg2buf);
 
