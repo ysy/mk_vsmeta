@@ -181,8 +181,11 @@ int main(int argc, char * argv[])
 
     write_string(pbuf, TAG_SHOW_TITLE, tvshow_title);
     write_string(pbuf, TAG_SHOW_TITLE2, tvshow_title);
-    if (episode_title)
+    if (episode_title) {
         write_string(pbuf, TAG_EPISODE_TITLE, episode_title);
+    } else {
+   	printf("ep title is null\n"); 
+   }
     write_int(pbuf, TAG_YEAR, 0);
     write_int(pbuf, TAG_EPISODE_LOCKED, 0);
     write_string(pbuf, TAG_EPISODE_META_JSON, "null");

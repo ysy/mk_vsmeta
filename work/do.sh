@@ -1,55 +1,65 @@
 #!/bin/bash
 
+ext=mp4
+IFS=$'\n'
 
-# ./do.sh orign.list new.list tvshow_title 
+i=1
 
-oldlist=$1
-newlist=$2
-tvshow_title=$3
+rm -rf out
+mkdir -p out/vsmeta
 
-IFS=$'\n';
-
-rm filenames.txt
-rm cmd.sh
-rm cmd_tmp.txt
-rm oldlist.tmp
+tvshow_name=$1
+season=$1
 
 
-rm -rf vsmeta
-mkdir vsmeta
+ep_rule='#([0-9]{2})'
+name_rule="#[0-9]{2} l(.*)l Tayo the"
+remove="英语1080P(限免)"
+#name_cmd_rule='{print $4}'
 
-for f in `cat $newlist ` ; do 
-	f=`basename $f` ;
-	season=${f:0:4} 
-	episode=${f:5:2} 
-	tail_str=${f:7}
-	episode_title=${tail_str%.*}
-	ext=${tail_str##*.}
+mv revert.sh revert.sh.bak
+rm -rf revert.sh
 
-	newfilename=${tvshow_title}.S${season}.E${episode}-${episode_title}
-	echo \"${newfilename}.${ext}\" >> filenames.txt
-	
-	etitle_option=""
-
-	if [ -n $episode_title ] ; then
-		etitle_option="-n $episode_title"
-		echo $etitle_option
+for f in `find -name "*.${ext}" -type f ` ; do 
+	filename=$(basename "$f")
+	if [ -n "$ep_rule" ]; then
+		ep_num=$(echo "$filename" | awk "{match(\$0, /$ep_rule/, a); print a[1]}")
+	else
+		ep_num=${i}
+		((i++))
 	fi
-	echo "$newfilename"
-	./mk_vsmeta -s ${season} -e ${episode} -t ${tvshow_title} $etitle_option "vsmeta/${newfilename}.${ext}.vsmeta"  
+	
+	if [ -n "$name_rule" ]; then
+		name=$(echo "$filename" | awk "{match(\$0, /$name_rule/, a); print a[1]}")
+	fi
+
+	if [ -n "$season_rule" ]; then
+		season=$(echo "$filename" | awk "{match(\$0, /$season_rule/, a); print a[1]}")
+	fi
+
+	if [ -n "$name_cmd_rule" ]; then
+		key=$(echo $ep_num | sed 's/^0//')
+		key="第${key}集"
+		name=$(cat names.txt | grep $key | awk "$name_cmd_rule" )
+		echo dafs
+	fi
+
+	name=$(echo $name | sed "s/$remove//g")
+	name=$(echo $name | sed "s/$ext//g")
+	name=$(echo $name | sed "s/\[.*\.com\.cn]//g" )
+	name=$(echo $name | sed "s/[ \.]$//g" )
+	name=$(echo $name | sed "s/^[\. ]//g" )
+	newfilename=$tvshow_name.S${season}E${ep_num}.${name}.${ext}
+	
+	name=$(echo $name | sed 's/[\._-]/ /g' )
+	echo $season $ep_num $name $newfilename
+	if [ -z $tvshow_name ]  || [ $tvshow_name = "test" ]; then
+		echo skip
+		continue
+	fi
+	echo mv  "${newfilename}" "$f" >> revert.sh
+	#mv -v  -b "$f" "${newfilename}"
+	ln  "$f" "out/${newfilename}"
+	  ~/mk_vsmeta  -s $season -e $ep_num -t $tvshow_name -n $name  "out/vsmeta/${newfilename}.vsmeta"
 done
 
-for line in `cat $oldlist` ; do 
-	echo \"$line\" >> oldlist.tmp
-done
-
-paste oldlist.tmp filenames.txt > cmd_tmp.txt
-
-for line in `cat cmd_tmp.txt` ; do 
-	echo "mv $line" >> cmd.sh
-done	
-
-rm cmd_tmp.txt
-rm oldlist.tmp
-
-tar zcvf vsmeta.tar.gz  vsmeta
